@@ -19,6 +19,8 @@ P = 'http://www.wikidata.org/prop/'
 SITE = pwb.Site('wikidata', 'wikidata')
 REPO = SITE.data_repository()
 
+PID_REASON_FOR_PREFERRED_RANK = 'P7452'
+
 
 def query_wdqs(query:str, retry_counter:int=3) -> list[dict[str, dict[str, Any]]]:
     response = requests.post(
@@ -95,6 +97,17 @@ def adjust_ranks(qid:str, pid:str) -> None:
             continue
 
         claim_json['rank'] = 'normal'
+
+        if PID_REASON_FOR_PREFERRED_RANK in claim_json.get('qualifiers', {}):
+            claim_json['qualifiers'].pop(PID_REASON_FOR_PREFERRED_RANK)
+        if 'qualifiers' in claim_json and len(claim_json.get('qualifiers', {}))==0:
+            claim_json.pop('qualifiers')
+
+        if PID_REASON_FOR_PREFERRED_RANK in claim_json.get('qualifiers-order', []):
+            claim_json['qualifiers-order'].remove(PID_REASON_FOR_PREFERRED_RANK)
+        if 'qualifiers-order' in claim_json and len(claim_json.get('qualifiers-order', []))==0:
+            claim_json.pop('qualifiers-order')
+
         commands['claims'].append(claim_json)
 
     if len(commands.get('claims', []))==0:
