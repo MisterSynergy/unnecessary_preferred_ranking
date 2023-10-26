@@ -1,0 +1,37 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: msynbot.unnecessary-preferred-ranking
+  labels:
+    name: msynbot.unnecessary-preferred-ranking
+    # The toolforge=tool label will cause $HOME and other paths to be mounted from Toolforge
+    toolforge: tool
+spec:
+  schedule: "42 10 * * 3"
+  successfulJobsHistoryLimit: 0
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            toolforge: tool
+        spec:
+          containers:
+          - name: unnecessary-preferred-ranking
+            image: docker-registry.tools.wmflabs.org/toolforge-python311-sssd-base:latest
+            resources:
+              requests:
+                memory: "100Mi"
+                cpu: "100m"
+              limits:
+                memory: "100Mi"
+                cpu: "100m"
+            env:
+            - name: HOME
+              value: /data/project/msynbot
+            - name: PYTHONPATH
+              value: /data/project/shared/pywikibot/stable
+            workingDir: /data/project/msynbot/pywikibot_tasks/unnecessary_preferred_ranking
+            command: [ venv/bin/python3 ]
+            args: [ main.py ]
+          restartPolicy: Never
